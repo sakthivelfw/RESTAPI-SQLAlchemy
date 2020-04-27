@@ -23,6 +23,21 @@ class Item(Resource):
             return item.json()
         return {'message': 'Item not found'}, 404
 
+    def post(self, name):
+        if ItemModel.find_by_name(name):
+            return {'message': "An item with name '{}' already exists.".format(name)}, 400
+
+        data = Item.parser.parse_args()
+
+        item = ItemModel(name, **data)
+
+        try:
+            item.save_to_db()
+        except:
+            return {"message": "An error occurred inserting the item."}, 500
+
+        return item.json(), 201
+
     def delete(self, name):
         item = ItemModel.find_by_name(name)
         if item:
@@ -48,19 +63,3 @@ class Item(Resource):
 class ItemList(Resource):
     def get(self):
         return {'items': list(map(lambda x: x.json(), ItemModel.query.all()))}
-
-class getItems(Resource):
-    def post(self):
-        data = Item.parser.parse_args()
-        if ItemModel.find_by_name(data["name"]):
-            return {'message': "An item with name '{}' already exists.".format(data["name"])}, 400
-
-        item = ItemModel(**data)
-
-        try:
-            item.save_to_db()
-        except:
-            return {"message": "An error occurred inserting the item."}, 500
-
-        return item.json(), 201
-        
