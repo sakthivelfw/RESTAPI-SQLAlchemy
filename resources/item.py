@@ -23,13 +23,12 @@ class Item(Resource):
             return item.json()
         return {'message': 'Item not found'}, 404
 
-    def post(self, name):
-        if ItemModel.find_by_name(name):
-            return {'message': "An item with name '{}' already exists.".format(name)}, 400
-
+    def post(self):
         data = Item.parser.parse_args()
+        if ItemModel.find_by_name(data["name"]):
+            return {'message': "An item with name '{}' already exists.".format(data["name"])}, 400
 
-        item = ItemModel(name, **data)
+        item = ItemModel(**data)
 
         try:
             item.save_to_db()
