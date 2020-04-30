@@ -52,15 +52,18 @@ class Item(Resource):
             return {'message': 'Item deleted.'}
         return {'message': 'Item not found.'}, 404
 
-    def put(self, name):
+    def put(self):
         data = Item.parser.parse_args()
 
-        item = ItemModel.find_by_name(name)
+        item = ItemModel.find_by_name(data['name'])
+        #updated_item = {"name": data['name], "price": data['price']}
 
-        if item:
-            item.price = data['price']
+        if item is None:
+            item = ItemModel(**data)
         else:
-            item = ItemModel(name, data['price'], data['store_id'])
+            item.price = data["price"]
+            item.name = data["name"]
+            item.store_id = data["store_id"]
 
         item.save_to_db()
 
