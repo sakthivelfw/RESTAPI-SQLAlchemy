@@ -1,5 +1,7 @@
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
+from flask import Flask, request
+import sqlite3
 from models.item import ItemModel
 
 
@@ -15,6 +17,11 @@ class Item(Resource):
                         required=True,
                         help="Every item needs a store_id."
                         )
+    parser.add_argument('name',
+                        required=True,
+                        help="Name cannot be blank"
+                        )
+
 
     @jwt_required()
     def get(self, name):
@@ -23,13 +30,13 @@ class Item(Resource):
             return item.json()
         return {'message': 'Item not found'}, 404
 
-    def post(self, name):
-        if ItemModel.find_by_name(name):
-            return {'message': "An item with name '{}' already exists.".format(name)}, 400
-
+    def post(self):
         data = Item.parser.parse_args()
 
-        item = ItemModel(name, data['price'], data['store_id'])
+        if ItemModel.find_by_name(data['name']):
+            return {'message': "An item with name '{}' already exists.".format(name)}, 400
+
+        item = ItemModel(**data)
 
         try:
             item.save_to_db()
